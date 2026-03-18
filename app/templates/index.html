@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Títulos dos Times</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --verde: #00ff87;
+    --escuro: #0a0a0a;
+    --card: #111111;
+    --borda: #222222;
+    --texto: #f0f0f0;
+    --muted: #666666;
+    --danger: #ff4444;
+  }
+
+  body {
+    background: var(--escuro);
+    color: var(--texto);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NAVBAR */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 2.5rem;
+    border-bottom: 1px solid var(--borda);
+    position: sticky;
+    top: 0;
+    background: rgba(10,10,10,0.95);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 3px;
+    color: var(--verde);
+  }
+
+  .nav-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--card);
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    padding: 4px;
+  }
+
+  .nav-tab {
+    padding: 8px 20px;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .nav-tab.active {
+    background: var(--verde);
+    color: var(--escuro);
+  }
+
+  .nav-tab:hover:not(.active) {
+    color: var(--texto);
+  }
+
+  /* TELAS */
+  .tela { display: none; padding: 3rem 2.5rem; max-width: 700px; margin: 0 auto; animation: fadeIn 0.3s ease; }
+  .tela.ativa { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* TELA ADICIONAR */
+  .tela-header { margin-bottom: 2.5rem; }
+
+  .tela-header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    letter-spacing: 2px;
+    line-height: 1;
+    color: var(--texto);
+  }
+
+  .tela-header h1 span { color: var(--verde); }
+
+  .tela-header p {
+    margin-top: 0.5rem;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 300;
+  }
+
+  .form-group { margin-bottom: 1.25rem; }
+
+  label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  input[type="text"],
+  input[type="number"] {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 15px;
+    color: var(--texto);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input[type="text"]:focus,
+  input[type="number"]:focus {
+    border-color: var(--verde);
+  }
+
+  input::placeholder { color: var(--muted); }
+
+  .btn-adicionar {
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 15px;
+    background: var(--verde);
+    color: var(--escuro);
+    border: none;
+    border-radius: 10px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+  }
+
+  .btn-adicionar:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-adicionar:active { transform: scale(0.98); }
+
+  .feedback {
+    margin-top: 1rem;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    display: none;
+  }
+
+  .feedback.sucesso {
+    background: rgba(0,255,135,0.1);
+    border: 1px solid rgba(0,255,135,0.3);
+    color: var(--verde);
+    display: block;
+  }
+
+  .feedback.erro {
+    background: rgba(255,68,68,0.1);
+    border: 1px solid rgba(255,68,68,0.3);
+    color: var(--danger);
+    display: block;
+  }
+
+  /* TELA LISTA */
+  .lista-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+  }
+
+  .lista-header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+
+  .lista-header h1 span { color: var(--verde); }
+
+  .contador {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 300;
+    padding-bottom: 4px;
+  }
+
+  .lista-vazia {
+    text-align: center;
+    padding: 4rem 0;
+    color: var(--muted);
+  }
+
+  .lista-vazia .icone {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+  }
+
+  .lista-vazia p { font-size: 14px; font-weight: 300; }
+
+  .lista { display: flex; flex-direction: column; gap: 10px; }
+
+  .item-time {
+    background: var(--card);
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: slideIn 0.3s ease;
+    transition: border-color 0.2s;
+  }
+
+  .item-time:hover { border-color: #333; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .item-info { display: flex; align-items: center; gap: 14px; }
+
+  .item-ranking {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    color: var(--muted);
+    min-width: 24px;
+  }
+
+  .item-ranking.top { color: var(--verde); }
+
+  .item-nome {
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  .item-direita { display: flex; align-items: center; gap: 14px; }
+
+  .badge-titulos {
+    background: rgba(0,255,135,0.1);
+    border: 1px solid rgba(0,255,135,0.2);
+    color: var(--verde);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .btn-remover {
+    background: transparent;
+    border: 1px solid var(--borda);
+    color: var(--muted);
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .btn-remover:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+    background: rgba(255,68,68,0.08);
+  }
+
+  .divisor {
+    height: 1px;
+    background: var(--borda);
+    margin: 1.5rem 0;
+  }
+
+  .resumo {
+    display: flex;
+    gap: 12px;
+  }
+
+  .resumo-card {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .resumo-numero {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--verde);
+    line-height: 1;
+  }
+
+  .resumo-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  @media (max-width: 500px) {
+    nav { padding: 1rem 1.25rem; }
+    .tela { padding: 2rem 1.25rem; }
+    .tela-header h1, .lista-header h1 { font-size: 2.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">⚽ TÍTULOS</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="trocarTela('adicionar')">Adicionar</button>
+    <button class="nav-tab" onclick="trocarTela('lista')">Ver Lista</button>
+  </div>
+</nav>
+
+<!-- TELA ADICIONAR -->
+<div class="tela ativa" id="tela-adicionar">
+  <div class="tela-header">
+    <h1>ADICIONAR<br><span>TIME</span></h1>
+    <p>Cadastre um time e a quantidade de títulos conquistados</p>
+  </div>
+
+  <div class="form-group">
+    <label>Nome do Time</label>
+    <input type="text" id="input-nome" placeholder="Ex: Flamengo" autocomplete="off" />
+  </div>
+
+  <div class="form-group">
+    <label>Quantidade de Títulos</label>
+    <input type="number" id="input-titulos" placeholder="Ex: 8" min="0" />
+  </div>
+
+  <button class="btn-adicionar" onclick="adicionarTime()">ADICIONAR TIME</button>
+
+  <div class="feedback" id="feedback"></div>
+</div>
+
+<!-- TELA LISTA -->
+<div class="tela" id="tela-lista">
+  <div class="lista-header">
+    <h1>TODOS OS<br><span>TIMES</span></h1>
+    <span class="contador" id="contador">0 times</span>
+  </div>
+
+  <div class="resumo" id="resumo" style="display:none; margin-bottom: 1.5rem;">
+    <div class="resumo-card">
+      <div class="resumo-numero" id="total-times">0</div>
+      <div class="resumo-label">Times</div>
+    </div>
+    <div class="resumo-card">
+      <div class="resumo-numero" id="total-titulos">0</div>
+      <div class="resumo-label">Títulos no total</div>
+    </div>
+    <div class="resumo-card">
+      <div class="resumo-numero" id="maior-titulo">—</div>
+      <div class="resumo-label">Maior campeão</div>
+    </div>
+  </div>
+
+  <div id="lista-container"></div>
+</div>
+
+<script>
+  let times = JSON.parse(localStorage.getItem("times") || "[]");
+
+  function trocarTela(tela) {
+    document.querySelectorAll(".tela").forEach(t => t.classList.remove("ativa"));
+    document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+    document.getElementById("tela-" + tela).classList.add("ativa");
+    event.target.classList.add("active");
+    if (tela === "lista") renderizarLista();
+  }
+
+  function salvar() {
+    localStorage.setItem("times", JSON.stringify(times));
+  }
+
+  function mostrarFeedback(msg, tipo) {
+    const el = document.getElementById("feedback");
+    el.textContent = msg;
+    el.className = "feedback " + tipo;
+    setTimeout(() => { el.className = "feedback"; }, 3000);
+  }
+
+  function adicionarTime() {
+    const nome = document.getElementById("input-nome").value.trim();
+    const titulos = parseInt(document.getElementById("input-titulos").value);
+
+    if (!nome) { mostrarFeedback("Digite o nome do time!", "erro"); return; }
+    if (isNaN(titulos) || titulos < 0) { mostrarFeedback("Digite uma quantidade válida de títulos!", "erro"); return; }
+    if (times.find(t => t.nome.toLowerCase() === nome.toLowerCase())) {
+      mostrarFeedback("Esse time já foi adicionado!", "erro"); return;
+    }
+
+    times.push({ nome, titulos });
+    times.sort((a, b) => b.titulos - a.titulos);
+    salvar();
+
+    document.getElementById("input-nome").value = "";
+    document.getElementById("input-titulos").value = "";
+    mostrarFeedback(`${nome} adicionado com sucesso!`, "sucesso");
+  }
+
+  function removerTime(index) {
+    times.splice(index, 1);
+    salvar();
+    renderizarLista();
+  }
+
+  function renderizarLista() {
+    const container = document.getElementById("lista-container");
+    const contador = document.getElementById("contador");
+    const resumo = document.getElementById("resumo");
+
+    contador.textContent = times.length + (times.length === 1 ? " time" : " times");
+
+    if (times.length === 0) {
+      resumo.style.display = "none";
+      container.innerHTML = `
+        <div class="lista-vazia">
+          <div class="icone">🏆</div>
+          <p>Nenhum time adicionado ainda.<br>Vá para a aba Adicionar para começar!</p>
+        </div>`;
+      return;
+    }
+
+    resumo.style.display = "flex";
+    document.getElementById("total-times").textContent = times.length;
+    document.getElementById("total-titulos").textContent = times.reduce((s, t) => s + t.titulos, 0);
+    document.getElementById("maior-titulo").textContent = times[0].nome.split(" ")[0];
+
+    container.innerHTML = `<div class="lista">${times.map((time, i) => `
+      <div class="item-time">
+        <div class="item-info">
+          <span class="item-ranking ${i < 3 ? 'top' : ''}">${i + 1}º</span>
+          <span class="item-nome">${time.nome}</span>
+        </div>
+        <div class="item-direita">
+          <span class="badge-titulos">🏆 ${time.titulos} ${time.titulos === 1 ? 'título' : 'títulos'}</span>
+          <button class="btn-remover" onclick="removerTime(${i})" title="Remover">✕</button>
+        </div>
+      </div>`).join("")}
+    </div>`;
+  }
+</script>
+</body>
+</html>
