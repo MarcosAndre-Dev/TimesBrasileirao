@@ -390,18 +390,12 @@
 </div>
 
 <script>
-  let times = JSON.parse(localStorage.getItem("times") || "[]");
-
   function trocarTela(tela) {
     document.querySelectorAll(".tela").forEach(t => t.classList.remove("ativa"));
     document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
     document.getElementById("tela-" + tela).classList.add("ativa");
     event.target.classList.add("active");
     if (tela === "lista") renderizarLista();
-  }
-
-  function salvar() {
-    localStorage.setItem("times", JSON.stringify(times));
   }
 
   function mostrarFeedback(msg, tipo) {
@@ -411,65 +405,84 @@
     setTimeout(() => { el.className = "feedback"; }, 3000);
   }
 
-  function adicionarTime() {
+  async function adicionarTime() {
     const nome = document.getElementById("input-nome").value.trim();
     const titulos = parseInt(document.getElementById("input-titulos").value);
 
     if (!nome) { mostrarFeedback("Digite o nome do time!", "erro"); return; }
     if (isNaN(titulos) || titulos < 0) { mostrarFeedback("Digite uma quantidade válida de títulos!", "erro"); return; }
-    if (times.find(t => t.nome.toLowerCase() === nome.toLowerCase())) {
-      mostrarFeedback("Esse time já foi adicionado!", "erro"); return;
+
+    try {
+      const res = await fetch("/api/times", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ time: nome, titulos: titulos })
+      });
+
+      if (res.ok) {
+        document.getElementById("input-nome").value = "";
+        document.getElementById("input-titulos").value = "";
+        mostrarFeedback(`${nome} adicionado com sucesso!`, "sucesso");
+      } else {
+        mostrarFeedback("Erro ao adicionar time!", "erro");
+      }
+    } catch (e) {
+      mostrarFeedback("Erro ao conectar com o servidor!", "erro");
     }
-
-    times.push({ nome, titulos });
-    times.sort((a, b) => b.titulos - a.titulos);
-    salvar();
-
-    document.getElementById("input-nome").value = "";
-    document.getElementById("input-titulos").value = "";
-    mostrarFeedback(`${nome} adicionado com sucesso!`, "sucesso");
   }
 
-  function removerTime(index) {
-    times.splice(index, 1);
-    salvar();
-    renderizarLista();
+  async function removerTime(id) {
+    try {
+      const res = await fetch(`/api/times/${id}`, { method: "DELETE" });
+      if (res.ok) renderizarLista();
+      else mostrarFeedback("Erro ao remover time!", "erro");
+    } catch (e) {
+      mostrarFeedback("Erro ao conectar com o servidor!", "erro");
+    }
   }
 
-  function renderizarLista() {
+  async function renderizarLista() {
     const container = document.getElementById("lista-container");
     const contador = document.getElementById("contador");
     const resumo = document.getElementById("resumo");
 
-    contador.textContent = times.length + (times.length === 1 ? " time" : " times");
+    try {
+      const res = await fetch("/api/times");
+      const times = await res.json();
 
-    if (times.length === 0) {
-      resumo.style.display = "none";
-      container.innerHTML = `
-        <div class="lista-vazia">
-          <div class="icone">🏆</div>
-          <p>Nenhum time adicionado ainda.<br>Vá para a aba Adicionar para começar!</p>
-        </div>`;
-      return;
+      contador.textContent = times.length + (times.length === 1 ? " time" : " times");
+
+      if (times.length === 0) {
+        resumo.style.display = "none";
+        container.innerHTML = `
+          <div class="lista-vazia">
+            <div class="icone">🏆</div>
+            <p>Nenhum time adicionado ainda.<br>Vá para a aba Adicionar para começar!</p>
+          </div>`;
+        return;
+      }
+
+      resumo.style.display = "flex";
+      document.getElementById("total-times").textContent = times.length;
+      document.getElementById("total-titulos").textContent = times.reduce((s, t) => s + t.titulos, 0);
+      document.getElementById("maior-titulo").textContent = times[0].nome.split(" ")[0];
+
+      container.innerHTML = `<div class="lista">${times.map((time, i) => `
+        <div class="item-time">
+          <div class="item-info">
+            <span class="item-ranking ${i < 3 ? 'top' : ''}">${i + 1}º</span>
+            <span class="item-nome">${time.nome}</span>
+          </div>
+          <div class="item-direita">
+            <span class="badge-titulos">🏆 ${time.titulos} ${time.titulos === 1 ? 'título' : 'títulos'}</span>
+            <button class="btn-remover" onclick="removerTime(${time.id})" title="Remover">✕</button>
+          </div>
+        </div>`).join("")}
+      </div>`;
+
+    } catch (e) {
+      container.innerHTML = `<div class="lista-vazia"><p>Erro ao carregar os times.</p></div>`;
     }
-
-    resumo.style.display = "flex";
-    document.getElementById("total-times").textContent = times.length;
-    document.getElementById("total-titulos").textContent = times.reduce((s, t) => s + t.titulos, 0);
-    document.getElementById("maior-titulo").textContent = times[0].nome.split(" ")[0];
-
-    container.innerHTML = `<div class="lista">${times.map((time, i) => `
-      <div class="item-time">
-        <div class="item-info">
-          <span class="item-ranking ${i < 3 ? 'top' : ''}">${i + 1}º</span>
-          <span class="item-nome">${time.nome}</span>
-        </div>
-        <div class="item-direita">
-          <span class="badge-titulos">🏆 ${time.titulos} ${time.titulos === 1 ? 'título' : 'títulos'}</span>
-          <button class="btn-remover" onclick="removerTime(${i})" title="Remover">✕</button>
-        </div>
-      </div>`).join("")}
-    </div>`;
   }
 </script>
 </body>

@@ -1,44 +1,44 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.src.models.produto import Produto
-from app.src.schemas.produto import SchemaProduct
-from app.api.routes.dependencies import get_db
+from app.src.models.times import Times          
+from app.src.schemas.times import SchemaProduct
+from app.src.infra.dependencies import get_db
 
-times= APIRouter(tags=["times"])
+router = APIRouter(tags=["times"])             
 
-@times.post("/")
+@router.post("/api/times")
 async def enviarBancoDados(data: SchemaProduct, db: Session = Depends(get_db)):
-    time = Produto(nome=data.produto, preco=data.preco)
+    time = Times(nome=data.time, titulos=data.titulos)  
     db.add(time)
     db.commit()
-    return "Message: Produto salvo com sucesso!"
+    return {"message": "time salvo com sucesso!"}
 
-@times.get("/api/times")
-def listarProdutos(db: Session = Depends(get_db)):
-    return db.query(Produto).order_by(Produto.preco.asc()).all()
+@router.get("/api/times")
+def listarTimes(db: Session = Depends(get_db)):
+    return db.query(Times).order_by(Times.titulos.desc()).all()  
 
-@times.get("/api/times/{id}")
-def buscarProduto(id: int, db: Session = Depends(get_db)):
-    produto = db.query(Produto).filter(Produto.id == id).first()
-    if not produto:
-        raise HTTPException(status_code=404, detail="Produto não encontrado!")
-    return produto
+@router.get("/api/times/{id}")
+def buscarTimes(id: int, db: Session = Depends(get_db)):
+    time = db.query(Times).filter(Times.id == id).first()  
+    if not time:
+        raise HTTPException(status_code=404, detail="time não encontrado!")
+    return time
 
-@times.put("/api/times/{id}")
-def editarProduto(id: int, data: SchemaProduct, db: Session = Depends(get_db)):
-    produto = db.query(Produto).filter(Produto.id == id).first()
-    if not produto:
-        raise HTTPException(status_code=404, detail="Produto não encontrado!")
-    produto.nome = data.produto
-    produto.preco = data.preco
+@router.put("/api/times/{id}")
+def editarTime(id: int, data: SchemaProduct, db: Session = Depends(get_db)):
+    time = db.query(Times).filter(Times.id == id).first()  
+    if not time:
+        raise HTTPException(status_code=404, detail="time não encontrado!")
+    time.nome = data.time       
+    time.titulos = data.titulos  
     db.commit()
-    return "Message: Produto atualizado com sucesso!"
+    return {"message": "time atualizado com sucesso!"}
 
-@times.delete("/api/times/{id}")
-def deletarItens(id: int, db: Session = Depends(get_db)):
-    produto = db.query(Produto).filter(Produto.id == id).first()
-    if not produto:
+@router.delete("/api/times/{id}")
+def deletarTimes(id: int, db: Session = Depends(get_db)):
+    time = db.query(Times).filter(Times.id == id).first()  
+    if not time:
         raise HTTPException(status_code=404, detail="Time não encontrado!")
-    db.delete(produto)
+    db.delete(time)
     db.commit()
-    return "Message: Time deletado com sucesso!"
+    return {"message": "Time deletado com sucesso!"}
